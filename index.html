@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TakeStock - Stock Analysis Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 TakeStock</h1>
+            <p class="subtitle">Analyze stocks with business intelligence</p>
+            <p class="data-disclaimer">⚠️ Real-time data only • No simulated or mock data • For educational purposes</p>
+            <button id="settingsBtn" class="settings-btn" title="Configure API Settings">⚙️ Settings</button>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="stockSymbol" 
+                        placeholder="Enter stock symbol (e.g., PEP, AAPL, TSLA)" 
+                        maxlength="10"
+                    >
+                    <button id="analyzeBtn">Analyze Stock</button>
+                </div>
+                <div id="apiStatus" class="api-status"></div>
+                <div id="errorMessage" class="error-message"></div>
+            </section>
+
+            <section id="resultsSection" class="results-section" style="display: none;">
+                
+                <!-- Tab Navigation -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="overview">📊 Overview</button>
+                    <button class="tab-btn" data-tab="charts">📈 Charts & Technicals</button>
+                    <button class="tab-btn" data-tab="news">📰 News & Analysis</button>
+                    <button class="tab-btn" data-tab="simulation">🎯 Business Simulation</button>
+                </div>
+
+                <!-- Tab Content Container -->
+                <div class="tab-content">
+                    
+                    <!-- TAB 1: Overview (Company, Price, Fundamentals) -->
+                    <div class="tab-pane active" id="overview-tab">
+                        
+                        <!-- Company Overview -->
+                        <div class="card">
+                            <h2>Company Overview</h2>
+                    <div id="companyInfo">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="label">Company Name:</span>
+                                <span id="companyName" class="value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Symbol:</span>
+                                <span id="symbol" class="value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Exchange:</span>
+                                <span id="exchange" class="value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Sector:</span>
+                                <span id="sector" class="value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Industry:</span>
+                                <span id="industry" class="value">-</span>
+                            </div>
+                        </div>
+                        <div class="description">
+                            <h3>Business Description</h3>
+                            <p id="description">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Price -->
+                <div class="card">
+                    <h2>Current Price & Performance</h2>
+                    <div id="priceInfo">
+                        <div class="price-display">
+                            <div class="current-price">
+                                <span class="price-label">Current Price</span>
+                                <span id="currentPrice" class="price-value">$0.00</span>
+                                <span id="priceChange" class="price-change">+0.00 (0.00%)</span>
+                            </div>
+                            <div class="price-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Open</span>
+                                    <span id="openPrice" class="stat-value">$0.00</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">High</span>
+                                    <span id="highPrice" class="stat-value">$0.00</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Low</span>
+                                    <span id="lowPrice" class="stat-value">$0.00</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Volume</span>
+                                    <span id="volume" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics (Fundamentals) -->
+                <div class="card" id="keyMetricsCard">
+                    <h2>📊 Key Metrics & Fundamentals</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-label">P/E Ratio</span>
+                            <span id="peRatio" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Market Cap</span>
+                            <span id="marketCap" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Dividend Yield</span>
+                            <span id="dividendYield" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">EPS (TTM)</span>
+                            <span id="eps" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Beta</span>
+                            <span id="beta" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Profit Margin</span>
+                            <span id="profitMargin" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">ROE (TTM)</span>
+                            <span id="roe" class="metric-value">N/A</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Revenue Growth (YoY)</span>
+                            <span id="revenueGrowth" class="metric-value">N/A</span>
+                        </div>
+                    </div>
+                    <div class="week-range">
+                        <h3>52-Week Range</h3>
+                        <div class="range-bar-container">
+                            <span id="week52Low" class="range-value">$0</span>
+                            <div class="range-bar">
+                                <div id="week52Indicator" class="range-indicator"></div>
+                            </div>
+                            <span id="week52High" class="range-value">$0</span>
+                        </div>
+                        <div class="range-current">
+                            Current: <span id="week52Current">$0</span>
+                        </div>
+                    </div>
+                </div>
+
+                    </div>
+                    <!-- END TAB 1: Overview -->
+
+                    <!-- TAB 2: Charts & Technicals -->
+                    <div class="tab-pane" id="charts-tab">
+
+                        <!-- Historical Chart -->
+                        <div class="card">
+                            <h2>Historical Price Chart</h2>
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Technical Indicators -->
+                <div class="card" id="technicalCard">
+                    <h2>📈 Technical Analysis</h2>
+                    <div class="technical-grid">
+                        <div class="technical-item">
+                            <span class="tech-label">50-Day SMA</span>
+                            <span id="sma50" class="tech-value">N/A</span>
+                            <span id="sma50Signal" class="tech-signal"></span>
+                        </div>
+                        <div class="technical-item">
+                            <span class="tech-label">200-Day SMA</span>
+                            <span id="sma200" class="tech-value">N/A</span>
+                            <span id="sma200Signal" class="tech-signal"></span>
+                        </div>
+                        <div class="technical-item">
+                            <span class="tech-label">RSI (14)</span>
+                            <span id="rsi" class="tech-value">N/A</span>
+                            <span id="rsiSignal" class="tech-signal"></span>
+                        </div>
+                        <div class="technical-item">
+                            <span class="tech-label">MACD</span>
+                            <span id="macd" class="tech-value">N/A</span>
+                            <span id="macdSignal" class="tech-signal"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analyst Recommendations -->
+                <div class="card" id="recommendationsCard">
+                    <h2>👥 Analyst Recommendations</h2>
+                    <div id="recommendationsList" class="recommendations-list">
+                        <!-- Dynamic recommendations content -->
+                    </div>
+                    <div id="priceTargetSection" class="price-target-section">
+                        <!-- Price target content -->
+                    </div>
+                </div>
+
+                <!-- Earnings History -->
+                <div class="card" id="earningsCard">
+                    <h2>💰 Earnings History</h2>
+                    <div id="earningsList" class="earnings-list">
+                        <!-- Dynamic earnings content -->
+                    </div>
+                </div>
+
+                    </div>
+                    <!-- END TAB 2: Charts & Technicals -->
+
+                    <!-- TAB 3: News & Analysis -->
+                    <div class="tab-pane" id="news-tab">
+
+                        <!-- News & Sentiment -->
+                        <div class="card" id="newsCard">
+                            <h2>📰 Recent News</h2>
+                            <div id="newsList" class="news-list">
+                                <!-- Dynamic news content -->
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- END TAB 3: News & Analysis -->
+
+                    <!-- TAB 4: Business Simulation -->
+                    <div class="tab-pane" id="simulation-tab">
+
+                        <!-- Business Levers -->
+                        <div class="card">
+                            <h2>Key Business Levers & Simulation Factors</h2>
+                    <div id="businessLevers">
+                        <p class="levers-intro">
+                            These are the key business factors that typically influence stock performance:
+                        </p>
+                        <div id="leversList" class="levers-list">
+                            <!-- Dynamic content will be inserted here -->
+                        </div>
+                        <div class="simulation-section">
+                            <h3>Simulation Impact Analysis</h3>
+                            <p class="simulation-note">
+                                Adjust the sliders below to see how changes in key business levers might impact the stock:
+                            </p>
+                            <div id="simulationControls" class="simulation-controls">
+                                <!-- Dynamic controls will be inserted here -->
+                            </div>
+                            <div id="simulationResult" class="simulation-result">
+                                <div class="result-display">
+                                    <span class="result-label">Estimated Impact:</span>
+                                    <span id="impactValue" class="impact-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    </div>
+                    <!-- END TAB 4: Business Simulation -->
+
+                </div>
+                <!-- END Tab Content Container -->
+                
+            </section>
+
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing stock data...</p>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-disclaimer">
+                <p><strong>⚠️ IMPORTANT DISCLAIMER</strong></p>
+                <p>TakeStock &copy; 2025 | All stock data is sourced from Finnhub API in real-time</p>
+                <p><strong>This tool is for educational and informational purposes only.</strong> It is NOT financial advice. 
+                All investment decisions should be made after consulting with qualified financial advisors. 
+                Past performance does not guarantee future results. Stock market investments involve risk of loss.</p>
+                <p>Data accuracy depends on Finnhub API availability and your subscription level. 
+                Always verify critical information with official sources before making financial decisions.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ API Settings</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-info">
+                    <p><strong>Multi-API Stock Data System</strong></p>
+                    <p class="info-box">ℹ️ <strong>Smart API Usage:</strong> This app uses the best API for each data type. 
+                    Configure one or more API keys below for optimal results.</p>
+                    
+                    <div class="api-strategy">
+                        <h4>How It Works:</h4>
+                        <ul>
+                            <li>🔴 <strong>Finnhub</strong> - Real-time quotes & company profiles (best for current prices)</li>
+                            <li>📊 <strong>Alpha Vantage</strong> - Historical data (90-day charts) - FREE tier includes history!</li>
+                            <li>📈 <strong>Polygon.io</strong> - Alternative historical data (if you have an account)</li>
+                        </ul>
+                        <p class="strategy-note">Configure at least Finnhub + Alpha Vantage for full features!</p>
+                    </div>
+                </div>
+                
+                <div class="api-keys-container">
+                    <!-- Finnhub -->
+                    <div class="api-key-section">
+                        <h4>🔴 Finnhub (Real-Time Quotes)</h4>
+                        <p class="api-desc">Best for current prices and company info. Get key at <a href="https://finnhub.io/register" target="_blank">finnhub.io</a></p>
+                        <div class="api-key-input">
+                            <input 
+                                type="text" 
+                                id="finnhubKeyInput" 
+                                placeholder="Enter Finnhub API key"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Alpha Vantage -->
+                    <div class="api-key-section">
+                        <h4>📊 Alpha Vantage (Historical Data)</h4>
+                        <p class="api-desc">FREE tier includes 90-day charts! Get key at <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a></p>
+                        <div class="api-key-input">
+                            <input 
+                                type="text" 
+                                id="alphaVantageKeyInput" 
+                                placeholder="Enter Alpha Vantage API key (optional)"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Polygon -->
+                    <div class="api-key-section">
+                        <h4>📈 Polygon.io (Alternative Historical)</h4>
+                        <p class="api-desc">Alternative for historical data. Get key at <a href="https://polygon.io/dashboard/signup" target="_blank">polygon.io</a></p>
+                        <div class="api-key-input">
+                            <input 
+                                type="text" 
+                                id="polygonKeyInput" 
+                                placeholder="Enter Polygon API key (optional)"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="api-actions">
+                    <button id="saveApiKeys" class="save-btn">💾 Save All API Keys</button>
+                    <button id="clearApiKeys" class="clear-btn">🗑️ Clear All Keys</button>
+                </div>
+                
+                <div id="apiKeyStatus" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
